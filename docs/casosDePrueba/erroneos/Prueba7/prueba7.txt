@@ -1,0 +1,33 @@
+let int precioBase; 
+
+let int impuesto; 
+
+let int total; 
+
+let string mensajeError; 
+
+ 
+
+precioBase = 100; 
+
+impuesto = 21; 
+
+mensajeError = "Error en calculo"; 
+
+ 
+
+/* Calculo correcto */ 
+
+total = precioBase + impuesto; 
+
+ 
+
+write "El total calculado es:"; 
+
+write total; 
+
+ 
+
+/* Intentamos asignar una cadena a una variable entera y eso da error */ 
+
+total = mensajeError; 

@@ -1,0 +1,14 @@
+TSG #0:
+* lexema: 'contador'
++ tipo : 'int'
++ despl : 0
+
+* lexema: 'tope'
++ tipo : 'int'
++ despl : 1
+
+* lexema: 'ejecutando'
++ tipo : 'boolean'
++ despl : 2
+
+

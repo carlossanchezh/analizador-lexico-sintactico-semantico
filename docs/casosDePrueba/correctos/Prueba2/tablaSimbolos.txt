@@ -1,0 +1,22 @@
+TSG #0:
+* lexema: 'contador'
++ tipo : 'int'
++ despl : 0
+
+* lexema: 'maximo'
++ tipo : 'int'
++ despl : 1
+
+* lexema: 'estado'
++ tipo : 'int'
++ despl : 2
+
+* lexema: 'terminado'
++ tipo : 'boolean'
++ despl : 3
+
+* lexema: 'incremento'
++ tipo : 'int'
++ despl : 4
+
+

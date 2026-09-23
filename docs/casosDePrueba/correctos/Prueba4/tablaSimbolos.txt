@@ -1,0 +1,28 @@
+TSL operacion #1:
+* lexema: 'entrada'
++ tipo : 'int'
++ despl : 0
+
+* lexema: 'x'
++ tipo : 'int'
++ despl : 1
+
+
+TSG #0:
+* lexema: 'operacion'
++ tipo : 'function'
++ numParam : 1
++ TipoParam1 : 'int'
++ ModoParam1 : 1
++ tipoRetorno : 'int'
++ EtiqFuncion : 'etq_operacion0'
+
+* lexema: 'x'
++ tipo : 'int'
++ despl : 0
+
+* lexema: 'resultado'
++ tipo : 'int'
++ despl : 1
+
+

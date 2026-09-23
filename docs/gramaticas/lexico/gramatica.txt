@@ -1,0 +1,33 @@
+Símbolos Terminales (T): {A, B, C, D, E, F, G, H, J} 
+
+l = {a, b, c, …, x, y, z, A, B, C, ..., X, Y, Z} 
+
+d = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9} 
+
+c = {cualquier carácter} 
+
+del = {‘\n’, blanco} 
+
+
+S  ->  del S  |  d A  |  l D  |  _ D  |  / E  |  | H  |  “J   |  = K  |  +  |  ,  |  ;  |  (  |  )  |  {  |  }  |  eof 
+
+A  ->   d A  |  . B  |  λ 
+
+B  ->   d C   
+
+C  ->   d C  |  λ 
+
+D  ->   l D  |  _ D  |  d D  |  λ 
+
+E  ->   * F 
+
+F  ->   c F  |  * G 
+
+G ->   c F  |  / S  |  * G 
+
+H  ->   =  |  | 
+
+J  ->   c J  |  “ 
+
+K  ->   =  |  λ 
+

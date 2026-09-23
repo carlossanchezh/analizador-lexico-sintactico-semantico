@@ -1,0 +1,140 @@
+S'-> {TSG := CrearTabla(); desp_global := 0} S {DestruirTabla(TSG)}
+
+S -> A S 		
+S -> T S		
+S -> eof		
+
+A -> let {zona_declaracion := true} B id ; { if TSL = null then tablaActual := TSG else tablaActual := TSL ;  
+											 if (tablaActual = TSL AND buscaTipo(id.pos,TSL)=null) then insertar(id.pos,TSL); setTipo(id.pos,B.tipo,TSL); setDesp(id.pos,desp_local, TSL); desp_local := desp_local + B.ancho
+											 else if (tablaActual = TSG AND buscaTipo(id.pos,TSG)=null) then setTipo(id.pos,B.tipo,TSG); setDesp(id.pos,desp_global, TSG); desp_global := desp_global + B.ancho
+											 else A.tipo = error("Identificador ya declarado en este ámbito") 
+		 zona_declaracion := false}
+						
+A -> if ( C ) M	{if(C.tipo = boolean) then A.tipo := M.tipo
+				 					  else A.tipo := error("La condicion dento de la sentencia 'if(condicion)' debe ser una expresion logica valida")}	
+	 
+A -> while ( C ) { L } {if(C.tipo = boolean) then A.tipo := L.tipo
+					    					 else A.tipo := error("La condicion dento de la sentencia 'while(condicion){...}' debe ser una expresion logica valida")}
+
+A -> M {A.tipo := M.tipo}		
+
+B -> int {B.tipo := int; B.ancho := 1}		
+B -> float {B.tipo := float; B.ancho := 2} 
+B -> boolean {B.tipo := boolean; B.ancho := 1}
+B -> string {B.tipo := string; B.ancho := 64}
+
+C -> D P { P.DtipoAnterior = D.tipo;
+		   if(P.tipo = ok) then C.tipo := D.tipo
+		   else if(P.tipo = boolean) then C.tipo := boolean
+		   else C.tipo := error}
+
+P1 -> || {if (P1.DtipoAnterior = boolean OR P1.DtipoAnterior = error) else P1.tipo := error("El primer opeador de || no es valido")} D { if(D.tipo = boolean AND P1.DtipoAnterior = boolean) then P1.tipo = boolean 
+																																	                                                         else P1.tipo := error("tipo/s no valido/s para el operador ||") P1.DtipoAnterior := error} P2 {P2.DtipoAnterior = P1.DtipoAnterior; if(P1.tipo = error OR P2.tipo = error)then P1.tipo := error 
+																																																																										                                                               else P1.tipo := boolean }
+
+P -> lambda {P.tipo := ok}
+
+D -> F G {G.FtipoAnterior := F.tipo if(G.tipo = ok) then D.tipo := F.tipo
+			  						else if(G.tipo = boolean) then D.tipo := boolean 
+			  						else D.tipo := error}
+
+G1 -> == {if (G1.DtipoAnterior = boolean OR G1.DtipoAnterior = float OR G1.DtipoAnterior = string OR G1.DtipoAnterior = int OR G1.DtipoAnterior = error) else G1.tipo := error("El primer opeador de == no es valido")} F { if(F.tipo = G1.FtipoAnterior)then G1.tipo := boolean G1.FtipoAnterior := boolean
+																																																														 else G1.tipo := error("tipo/s no valido/s para el operador ==") } G2 {G2.FtipoAnterior = G1.FtipoAnterior; if(G1.tipo = error OR G2.tipo = error) then G1.tipo = error
+																																																														 																											                                       else G1.tipo := boolean}
+G -> lambda {G.tipo := ok}
+
+F -> H Z {Z.HtipoAnterior = H.tipo; if(Z.tipo = ok) then F.tipo := H.tipo
+			  						                else F.tipo := error}
+
+Z1 -> + {if(Z1.HtipoAnterior = int OR Z1.HtipoAnterior = float OR Z1.HtipoAnterior = error) else Z1.tipo := error("El primer opeador de + no es valido"); Z1.HtipoAnterior := error } H  {if((H.tipo = int AND Z1.HtipoAnterior = int) OR (H.tipo = float AND Z1.HtipoAnterior = float) ) then Z1.tipo := ok
+																																														  																								  else Z1.tipo := error("tipo/s no valido/s para el operador ==")} Z2 {Z2.HtipoAnterior = Z1.HtipoAnterior; if(Z1.tipo = error OR Z2.tipo = error) then Z1.tipo = error
+																																																																						  																																				   else Z1.tipo := ok}
+
+Z -> lambda {Z.tipo := ok}
+
+H -> id J { if (TSL = null) then tablaAtual := TSG else tablaActual := TSL; 
+			if (buscaTipo(id.pos,tablaAtual)=null) then if (buscaTipo(id.pos,TSG)=null AND J.tipo = id) then setTipo(id.pos,int,TSG); setDesp(id.pos,desp_global, TSG); desp_global := desp_global + 1
+			else if (J.tipo = id) then if (esFuncion(id.pos,TSG) = true) then H.tipo = error("Una funcion no puede usarse como identificador")
+																	     else H.tipo = buscaTipo(id.pos,TSG);
+			if(J.tipo = funcion) then if (esFuncion(id.pos,TSG) = true) else H.tipo := error("Funcion no declarada")
+																		then if (J.numParam = buscaNumParam(id.pos,TSG)) then if(J.numParam = 0 ) then if(buscaTipo(id.pos,TSG) = void -> t) then H.tipo := t  
+																													   							  else if(buscaTipo(id.pos,TSG) = J.tiposParam -> t) then H.tipo := t
+																													 													                             else H.tipo := error("Tipo incorrecto en parametro/s de la funcion")
+																													     else H.tipo = error("Numero de parametros incorrectos en la llamada a la funcion")}
+
+H -> ( C ) { H.tipo := C.tipo }		
+
+H -> entero { H.tipo := int ; H.ancho := 1 }		
+
+H -> real { H.tipo := float ; H.ancho := 2 }		
+
+H -> cadena { H.tipo := string ; H.ancho := 64 }
+		
+J -> ( K ) { J.tipo := funcion; J.numParam := K.numParam; J.tiposParam := K.tiposParam}	
+
+J -> lambda { J.tipo := id}
+
+K -> C Q { K.tiposParam := C.tipo x Q.tiposParam; K.numParam := 1 + Q.numParam }	
+
+K -> lambda { K.numParam := 0; K.tiposParam := void }
+
+L1 -> A L2 { if(A.tipo = error OR L2.tipo = error) then L1.tipo = error
+												   else L1.tipo = ok}
+			 
+
+L -> lambda { L.tipo := ok}
+
+M -> id N { if (TSL = null) then tablaAtual := TSG else tablaActual := TSL;
+			if (buscaTipo(id.pos,tablaAtual)=null ) then if (buscaTipo(id.pos,TSG)=null) then if(N.tipo = funcion) else setTipo(id.pos,int,TSG); setDesp(id.pos,desp_global, TSG); desp_global := desp_global + 1
+			if (esFuncion(id.pos,tablaActual) = true) then if(N.tipo = function) then if(N.numParam = buscaNumParam(id.pos,TSG) ) then if(N.numParam=0)then M.tipo := ok
+																																					   else if (buscaTipo(id.pos,TSG) = N.tiposParam -> t) then M.tipo := ok
+																																																            else M.tipo := error("Tipo incorrecto en parametro/s de la funcion" )	
+																																  else M.tipo := error("Numero de parametros incorrecto")
+																																															  							
+																	            else M.tipo := error("No se puede hacer una asignacion a una funcion")
+													  else if(N.tipo = function) then M.tipo := error ("Funcion  no declarada")
+																				 else tipoVar := buscaTipo(id.pos,tablaActual); if(N.tipo = error AND N.esOlog = false) then M.tipo := error("Asignacion de tipo erronea")
+																														 					                            else if(tipoVar = N.tipo AND N.esOlog = false) then M.tipo := ok else M.tipo := error("Asignacion de tipo erronea") 
+																																			  							else if(tipoVar = boolean AND N.esOlog = true) then M.tipo := ok else M.tipo := error("tipo/s no valido/s para el operador |=")	}																																  		
+
+M -> read id ; {if (TSL = null) then tablaAtual := TSG else tablaActual := TSL;
+				if (buscaTipo(id.pos,tablaAtual)= null ) then if (buscaTipo(id.pos,TSG)=null ) then setTipo(id.pos,int,TSG); setDesp(id.pos,desp_global, TSG); desp_global := desp_global + 1; M.tipo = ok
+									                     else if( buscaTipo(id.pos,tablaActual) = int OR buscaTipo(id.pos,tablaActual) = float OR buscaTipo(id.pos,tablaActual) = string) then M.tipo := ok			
+									 																						   															  else M.tipo := error("En read solo se pueden leer variables int, float o string")}
+
+M -> write C ; { if(C.tipo = int OR C.tipo = float OR C.tipo = string) then M.tipo = ok 
+								      								   else M.tipo = error("En write solo se pueden imprimir variables int, float o string")}		
+
+M -> return { if(zona_funcion= false) then M.tipo := error("El uso de return fuera de una funcion no es valido")} R; {if (returnActual = R.tipo) then M.tipo := ok 
+																																				else M.tipo := ("El tipo devuelto por la funcion es incorrecto)} 
+	
+N -> = C ; { N.tipo := C.tipo}		
+
+N -> |= C ; { N.esOlog = true; if(C.tipo = boolean ) then N.tipo := boolean 
+													 else N.tipo := error("Tipo no valido para el operador |=")}	
+
+N -> ( K ) ; {N.tipo = function; N.numParam := K.numParam; N.tiposParam := K.tiposParam }		
+
+Q1 -> , C Q2 { Q1.tiposParam := C.tipo x Q2.tiposParam; Q1.numParam := 1 + Q2.numParam}	
+
+Q -> lambda { Q1.tiposParam := void; Q1.numParam := 0}
+
+R -> C { R.tipo := C.tipo}		
+
+R -> lambda {R.tipo := void}		
+
+T -> function {zona_declaracion := true; zona_funcion := true} V {returnActual := V.tipo} id {if(buscaTipo(id.pos,TSG) = null) then setEsFuncion(id.pos,TSG) := true; setEtiqueta(id.pos,nuevaEtiqueta(),TSG); TSG := CrearTabla(); desp_local := 0
+																															   else error("Identificador de funcion ya ha sido declarado); TSG := CrearTabla(); desp_local := 0; funcionRepetida := true} ( X { if(funcionRepetida = true) else setTipo(id.pos,X.TiposParam -> V.tipo,TSG); setNumParam(id.pos,X.numParam,TSG); setModoParam(id.pos,X.modosParam,TSG) }) {zona_declaracion := false} { L {if(L.tipo = error) then T.tipo := error("El bloque de argumentos de la funcion tien algun error/es")} }	{zona_funcion = false; returnActual := null; DestruirTabla(TSL)}
+
+V -> B {V.tipo := B.tipo }	
+
+V -> void {V.tipo := void }	 			
+
+X -> B id { if(buscaTipo(id.pos,TSL) = null) then insertar(id.pos,TSL); setTipo(id.pos,B.tipo); setDesp(id.pos,desp_local); desp_local:= desp_local + B.ancho 
+																	   else X.tipo = error("Parametro ya declarado")} {X.tiposParam := B.tipo; X.modosParam := 1; X.numParam := 1 } Y { if(Y.tipo = void) else X.tiposParam := B.tipo x Y.tiposParam; X.modosParam := 1 x Y.modosParam; X.numParam := 1+ Y.numParam}
+	 	
+X -> void {X.tiposParam := void; X.numParam := 0 }		
+
+Y1 -> , B id {if(buscaTipo(id.pos,TSL) = null) then insertar(id.pos,TSL); setTipo(id.pos,B.tipo); setDesp(id.pos,desp_local); desp_local:= desp_local + B.ancho 
+																		 else  Y1.tipo = error("Parametro ya declarado")} {Y1.tiposParam := Y1.TiposParam x B.tipo; Y1.modosParam := Y1.modosParam x 1; Y1.numParam := Y1.numParam + 1 } Y2 {if(Y2.tipo = void) else Y1.tiposParam := Y1.tiposParam x Y2.tiposParam; Y1.modosParam := Y1.modosParam x Y2.modosParam; Y1.numParam := Y1.numParam + Y2.numParam}		
+Y -> lambda {Y.tipo := void}

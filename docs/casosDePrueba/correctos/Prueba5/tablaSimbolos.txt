@@ -1,0 +1,154 @@
+TSL suma #1:
+* lexema: 'x'
++ tipo : 'int'
++ despl : 0
+
+* lexema: 'y'
++ tipo : 'int'
++ despl : 1
+
+* lexema: 'cont'
++ tipo : 'int'
++ despl : 2
+
+
+TSL comparaciones #2:
+* lexema: 'a'
++ tipo : 'boolean'
++ despl : 0
+
+* lexema: 'b'
++ tipo : 'boolean'
++ despl : 1
+
+* lexema: 'c'
++ tipo : 'boolean'
++ despl : 2
+
+* lexema: 'd'
++ tipo : 'boolean'
++ despl : 3
+
+
+TSL print #3:
+* lexema: 'h'
++ tipo : 'string'
++ despl : 0
+
+
+TSL setN #5:
+* lexema: 'x'
++ tipo : 'int'
++ despl : 0
+
+
+TSL contador #7:
+* lexema: 'i'
++ tipo : 'int'
++ despl : 0
+
+
+TSL main #8:
+* lexema: 'a'
++ tipo : 'boolean'
++ despl : 0
+
+* lexema: 'b'
++ tipo : 'boolean'
++ despl : 1
+
+* lexema: 'c'
++ tipo : 'boolean'
++ despl : 2
+
+* lexema: 'd'
++ tipo : 'boolean'
++ despl : 3
+
+* lexema: 'num'
++ tipo : 'int'
++ despl : 4
+
+
+TSG #0:
+* lexema: 'suma'
++ tipo : 'function'
++ numParam : 2
++ TipoParam1 : 'int'
++ ModoParam1 : 1
++ TipoParam2 : 'int'
++ ModoParam2 : 1
++ tipoRetorno : 'int'
++ EtiqFuncion : 'etq_suma0'
+
+* lexema: 'comparaciones'
++ tipo : 'function'
++ numParam : 4
++ TipoParam1 : 'boolean'
++ ModoParam1 : 1
++ TipoParam2 : 'boolean'
++ ModoParam2 : 1
++ TipoParam3 : 'boolean'
++ ModoParam3 : 1
++ TipoParam4 : 'boolean'
++ ModoParam4 : 1
++ tipoRetorno : 'boolean'
++ EtiqFuncion : 'etq_comparaciones1'
+
+* lexema: 'print'
++ tipo : 'function'
++ numParam : 1
++ TipoParam1 : 'string'
++ ModoParam1 : 1
++ tipoRetorno : 'void'
++ EtiqFuncion : 'etq_print2'
+
+* lexema: 'getN'
++ tipo : 'function'
++ numParam : 0
++ tipoRetorno : 'int'
++ EtiqFuncion : 'etq_getN3'
+
+* lexema: 'setN'
++ tipo : 'function'
++ numParam : 1
++ TipoParam1 : 'int'
++ ModoParam1 : 1
++ tipoRetorno : 'void'
++ EtiqFuncion : 'etq_setN4'
+
+* lexema: 'setNPorPantalla'
++ tipo : 'function'
++ numParam : 0
++ tipoRetorno : 'void'
++ EtiqFuncion : 'etq_setNPorPantalla5'
+
+* lexema: 'contador'
++ tipo : 'function'
++ numParam : 0
++ tipoRetorno : 'void'
++ EtiqFuncion : 'etq_contador6'
+
+* lexema: 'main'
++ tipo : 'function'
++ numParam : 0
++ tipoRetorno : 'void'
++ EtiqFuncion : 'etq_main7'
+
+* lexema: 'cont'
++ tipo : 'float'
++ despl : 0
+
+* lexema: 'true'
++ tipo : 'boolean'
++ despl : 2
+
+* lexema: 'false'
++ tipo : 'boolean'
++ despl : 3
+
+* lexema: 'n'
++ tipo : 'int'
++ despl : 4
+
+

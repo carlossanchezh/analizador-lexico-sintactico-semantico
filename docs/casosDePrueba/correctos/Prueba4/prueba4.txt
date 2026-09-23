@@ -1,0 +1,53 @@
+let int x; 
+
+let int resultado; 
+
+ 
+
+x = 10; 
+
+ 
+
+function int operacion(int entrada) { 
+
+    /* Esta x es local y oculta a la global (que vale 10) */ 
+
+    let int x; 
+
+    x = entrada + 20; 
+
+ 
+
+    /* si entrada -> 10, x local sera 30 */ 
+
+    if (x == 30) 
+
+        write "Dentro de funcion: x local calculado"; 
+
+ 
+
+    return x + entrada; 
+
+} 
+
+ 
+
+write "Valor global de x antes:"; 
+
+write x; 
+
+ 
+
+/* Llamada anidada: operacion( operacion(10) ) */ 
+
+/* en el interior la entrada es 10 -> retorna 30+10 = 40 */ 
+
+/* en el exterior la entrada es 40 -> local x=60 -> retorna 60+40 = 100 */ 
+
+resultado = operacion( operacion(x) ); 
+
+ 
+
+write "Resultado (deberia ser 100):"; 
+
+write resultado; 

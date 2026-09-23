@@ -1,0 +1,3 @@
+Error semantico: Uso indebido de funcion, 'calcular' es funcion y no puede usarse como variable | En la linea: 19
+Error semantico: Tipo no valido para la suma los operandos deben ser del mismo tipo siendo ambos enteros o reales se esperaba [(int/float) + (int/float)] pero se encontro [ error + int ] | En la linea: 19
+Error semantico: Asignacion incompatible se esperaba una asignacion de tipo [ int = int ] pero se encontro una asignacion de tipo [ int = expresion que da lugar a un resultado erroneo ] | En la linea: 19

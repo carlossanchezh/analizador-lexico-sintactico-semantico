@@ -1,0 +1,1 @@
+Error semantico: Asignacion incompatible se esperaba una asignacion de tipo [ int = int ] pero se encontro una asignacion de tipo [ int = string ] | En la linea: 33

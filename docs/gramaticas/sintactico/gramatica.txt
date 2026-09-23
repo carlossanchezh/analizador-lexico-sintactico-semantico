@@ -1,0 +1,80 @@
+//// Fichero de gramática | Grupo 72
+
+Terminales = { let  int  boolean  float  string  if  while  function  void  return  read  write  id  entero  real  cadena  +  ,  ;  (  )  {  }  =  ==  |=  ||  eof }
+
+NoTerminales = { S  A  B  C  D  F  P  G  H  J  K  L  M  N  Q  R  T  V  X  Y  Z }
+
+Axioma = S
+
+Producciones = {
+
+	S -> A S		
+	S -> T S		
+	S -> eof		
+
+	A -> let B id ; 		
+	A -> if ( C ) M			
+	A -> while ( C ) { L }	
+	A -> M			
+
+	B -> int		
+	B -> float 
+	B -> boolean
+	B -> string
+
+	C -> D P
+
+    P -> || D P
+    P -> lambda
+
+    D -> F G
+
+    G -> == F G
+    G -> lambda
+
+    F -> H Z
+
+    Z -> + H Z
+   	Z -> lambda
+
+	H -> id J
+	H -> ( C )		
+	H -> entero		
+	H -> real		
+	H -> cadena		
+
+	J -> ( K )		
+	J -> lambda
+
+	K -> C Q		 
+	K -> lambda
+
+	L -> A L		
+	L -> lambda 
+
+	M -> id N		
+	M -> read id ;		
+	M -> write C ;		
+	M -> return R ;		
+	
+	N -> = C ;		
+	N -> |= C ;		
+	N -> ( K ) ;		
+
+	Q -> , C Q		
+	Q -> lambda
+
+	R -> C			
+	R -> lambda		
+
+	T -> function V id ( X ) { L }	
+
+	V -> B			
+	V -> void			
+
+	X -> B id Y		
+	X -> void		
+
+	Y -> , B id Y		
+	Y -> lambda
+}

@@ -1,0 +1,34 @@
+TSL sumarRango #1:
+* lexema: 'actual'
++ tipo : 'int'
++ despl : 0
+
+* lexema: 'meta'
++ tipo : 'int'
++ despl : 1
+
+
+TSG #0:
+* lexema: 'sumarRango'
++ tipo : 'function'
++ numParam : 2
++ TipoParam1 : 'int'
++ ModoParam1 : 1
++ TipoParam2 : 'int'
++ ModoParam2 : 1
++ tipoRetorno : 'int'
++ EtiqFuncion : 'etq_sumarRango0'
+
+* lexema: 'inicio'
++ tipo : 'int'
++ despl : 0
+
+* lexema: 'fin'
++ tipo : 'int'
++ despl : 1
+
+* lexema: 'total'
++ tipo : 'int'
++ despl : 2
+
+

@@ -1,0 +1,15 @@
+let int numero; 
+
+let string texto; 
+
+ 
+
+numero = 50; 
+
+texto = "Hola"; 
+
+ 
+
+/* No se puede asignar un string a un int */ 
+
+numero = texto; 
