@@ -216,6 +216,81 @@ El proyecto sigue una arquitectura modular basada en **análisis por fases**, do
 
 El compilador sigue un flujo de **análisis por fases** donde cada etapa consume la salida de la anterior. A continuación se describe el proceso completo desde que se selecciona un archivo hasta que se generan los resultados.
 
+#### Descripción Detallada del Flujo
+
+##### 1. Selección y Preparación
+
+El programa comienza en `Main.java`:
+
+- **Creación del directorio `files/`** si no existe.
+
+- **Selección del archivo de entrada** mediante `JFileChooser` (interfaz Swing).
+
+- **Limpieza de salidas previas**: se eliminan `errores.txt`, `parse.txt`, `tablaSimbolos.txt` y `tokens.txt` para evitar mezclar resultados de ejecuciones anteriores.
+
+- **Lectura del código fuente** completo en un `String`.
+
+##### 2. Inicialización de Componentes Compartidos
+
+Se crean dos componentes que serán usados por las tres fases:
+
+- **`GestorErrores`**: apunta a `files/errores.txt`, acumula errores semánticos y escribe errores léxicos/sintácticos inmediatamente.
+
+- **`GestorTablas`**: crea la tabla global `TSG #0` y gestiona las tablas locales que se creen al entrar en funciones.
+
+Ambos se pasan como parámetros a los analizadores, por lo que **todas las fases comparten el mismo estado**.
+
+##### 3. Fase 1 — Análisis Léxico
+
+Se instancia un `AnalizadorLexico` con el código, el `GestorTablas` y el `GestorErrores`.
+
+- `TokensToFile.tokenizar()` recorre el código llamando a `lexer.getToken()` en bucle hasta obtener `eof`.
+
+- Cada token se escribe en `files/tokens.txt` con formato `<tipo, lexema>`.
+
+- Los identificadores se insertan en la **TSG** (a través de `GestorTablas`) y el token guarda su `id` como lexema.
+
+- Si se detecta un error léxico, se llama a `gestorErrores.errorLexico()` que escribe el mensaje en `files/errores.txt` y se detiene la ejecución.
+
+##### 4. Fase 2 — Análisis Sintáctico
+
+Se instancia un `AnalizadorSintactico`, compartiendo los mismos `GestorTablas` y `GestorErrores`.
+
+- El parser comienza con `A_Sint()`, que lee el primer token y llama a `S()`.
+
+- Se implementa un **parser descendente recursivo LL(1)**: cada no terminal tiene su método (`A()`, `B()`, `C()`, ...).
+
+- La función `equipara(token)` consume el token actual si coincide con el esperado; en caso contrario, invoca `gestorErrores.errorSintactico()`.
+
+- Cada regla aplicada se escribe en `files/parse.txt` con el número de producción (`Desc 1 4 8 ...`).
+
+- Si hay error sintáctico, se llama a `gestorErrores.errorSintactico()` que escribe en `files/errores.txt` y detiene la ejecución.
+
+##### 5. Fase 3 — Análisis Semántico
+
+Se instancia  el `AnalizadorSemantico`, también con los mismos gestores compartidos `GestorTablas` y `GestorErrores`.
+
+- El método `A_Sm()` inicializa el token y llama a `S()`.
+  
+- Se implementa la **traducción dirigida por la sintaxis**: cada método devuelve un objeto `Nodo` con atributos (`tipo`, `ancho`, `numParam`, `tipoParametros`, `tipoRetorno`, etc.).
+
+- Se gestionan ámbitos **a través del `GestorTablas`**:
+  - Al entrar en una función, se crea una **TSL** con `gestorTablas.crearTSLocal()`.
+  - Al salir, se vuelca a `tablaSimbolos.txt` y se destruye con `destroyTSL()`.
+
+- Se realizan comprobaciones semánticas y, si hay errores, se acumulan en `erroresSemanticos` mediante `gestorErrores.errorSemantico()`.
+
+- Al finalizar `S()`, se vuelca la TSG a `tablaSimbolos.txt` y se llama a `gestorErrores.guardarErrores()` para escribir todos los errores semánticos acumulados.
+
+##### 6. Salidas Generadas
+
+| Archivo | Contenido | Cuándo se genera |
+|---------|-----------|------------------|
+| `files/tokens.txt` | Lista de tokens reconocidos | Tras la fase léxica |
+| `files/parse.txt` | Traza de producciones aplicadas | Durante la fase sintáctica |
+| `files/tablaSimbolos.txt` | Tablas TSG y TSL | Durante/después de la fase semántica |
+| `files/errores.txt` | Errores detectados | Inmediatamente (léx/sint) o al final (semánticos) |
+
 #### Diagrama de Flujo 
 
 ```plaintext
@@ -286,81 +361,6 @@ El compilador sigue un flujo de **análisis por fases** donde cada etapa consume
               └────────────────────────────────────────────┘
 ```
 
-#### Descripción Detallada del Flujo
-
-##### 1. Selección y Preparación
-
-El programa comienza en `Main.java`:
-
-1. **Creación del directorio `files/`** si no existe.
-
-2. **Selección del archivo de entrada** mediante `JFileChooser` (interfaz Swing).
-
-3. **Limpieza de salidas previas**: se eliminan `errores.txt`, `parse.txt`, `tablaSimbolos.txt` y `tokens.txt` para evitar mezclar resultados de ejecuciones anteriores.
-
-4. **Lectura del código fuente** completo en un `String`.
-
-##### 2. Inicialización de Componentes Compartidos
-
-Se crean dos componentes que serán usados por las tres fases:
-
-- **`GestorErrores`**: apunta a `files/errores.txt`, acumula errores semánticos y escribe errores léxicos/sintácticos inmediatamente.
-
-- **`GestorTablas`**: crea la tabla global `TSG #0` y gestiona las tablas locales que se creen al entrar en funciones.
-
-Ambos se pasan como parámetros a los analizadores, por lo que **todas las fases comparten el mismo estado**.
-
-##### 3. Fase 1 — Análisis Léxico
-
-Se instancia un `AnalizadorLexico` con el código, el `GestorTablas` y el `GestorErrores`.
-
-- `TokensToFile.tokenizar()` recorre el código llamando a `lexer.getToken()` en bucle hasta obtener `eof`.
-
-- Cada token se escribe en `files/tokens.txt` con formato `<tipo, lexema>`.
-
-- Los identificadores se insertan en la **TSG** (a través de `GestorTablas`) y el token guarda su `id` como lexema.
-
-- Si se detecta un error léxico, se llama a `gestorErrores.errorLexico()` que escribe el mensaje en `files/errores.txt` y se detiene la ejecución.
-
-##### 4. Fase 2 — Análisis Sintáctico
-
-Se instancia un `AnalizadorSintactico`, compartiendo los mismos `GestorTablas` y `GestorErrores`.
-
-- El parser comienza con `A_Sint()`, que lee el primer token y llama a `S()`.
-
-- Se implementa un **parser descendente recursivo LL(1)**: cada no terminal tiene su método (`A()`, `B()`, `C()`, ...).
-
-- La función `equipara(token)` consume el token actual si coincide con el esperado; en caso contrario, invoca `gestorErrores.errorSintactico()`.
-
-- Cada regla aplicada se escribe en `files/parse.txt` con el número de producción (`Desc 1 4 8 ...`).
-
-- Si hay error sintáctico, se llama a `gestorErrores.errorSintactico()` que escribe en `files/errores.txt` y detiene la ejecución.
-
-##### 5. Fase 3 — Análisis Semántico
-
-Se instancia  el `AnalizadorSemantico`, también con los mismos gestores compartidos `GestorTablas` y `GestorErrores`.
-
-- El método `A_Sm()` inicializa el token y llama a `S()`.
-  
-- Se implementa la **traducción dirigida por la sintaxis**: cada método devuelve un objeto `Nodo` con atributos (`tipo`, `ancho`, `numParam`, `tipoParametros`, `tipoRetorno`, etc.).
-
-- Se gestionan ámbitos **a través del `GestorTablas`**:
-  - Al entrar en una función, se crea una **TSL** con `gestorTablas.crearTSLocal()`.
-  - Al salir, se vuelca a `tablaSimbolos.txt` y se destruye con `destroyTSL()`.
-
-- Se realizan comprobaciones semánticas y, si hay errores, se acumulan en `erroresSemanticos` mediante `gestorErrores.errorSemantico()`.
-
-- Al finalizar `S()`, se vuelca la TSG a `tablaSimbolos.txt` y se llama a `gestorErrores.guardarErrores()` para escribir todos los errores semánticos acumulados.
-
-##### 6. Salidas Generadas
-
-| Archivo | Contenido | Cuándo se genera |
-|---------|-----------|------------------|
-| `files/tokens.txt` | Lista de tokens reconocidos | Tras la fase léxica |
-| `files/parse.txt` | Traza de producciones aplicadas | Durante la fase sintáctica |
-| `files/tablaSimbolos.txt` | Tablas TSG y TSL | Durante/después de la fase semántica |
-| `files/errores.txt` | Errores detectados | Inmediatamente (léx/sint) o al final (semánticos) |
-
 ### Tecnologías
 
 - Lenguaje: **Java**
@@ -368,7 +368,7 @@ Se instancia  el `AnalizadorSemantico`, también con los mismos gestores compart
 
 ## Casos de Prueba
 
-El proyecto incluye una batería de casos de prueba organizados en [`docs/pruebas/`](docs/pruebas), divididos en [**`correctas/`**](docs/pruebas/correctas) e [**`incorrectas/`**](docs/pruebas/incorrectas).
+El proyecto incluye una batería de casos de prueba organizados en [`docs/pruebas/`](docs/pruebas), divididos en [**`correctas/`**](docs/pruebas/correctas) e [**`erroneas/`**](docs/pruebas/erroneas).
 
 ### Casos Correctos
 
@@ -380,7 +380,7 @@ El proyecto incluye una batería de casos de prueba organizados en [`docs/prueba
 | **Prueba 4** | Gestión de ámbitos y solapamiento | Variable local `x` que oculta a la global `x`, llamada anidada `operacion(operacion(x))` |
 | **Prueba 5** | Integración completa | Múltiples funciones (`suma`, `comparaciones`, `print`, `getN`, `setN`, `setNPorPantalla`, `contador`, `main`), tipos `void`, `read`, `write`, aritmética compleja, operadores lógicos y relacionales |
 
-### Casos Incorrectos 
+### Casos erroneos 
 
 | Caso | Tipo de Error | Descripción | Mensaje esperado en `errores.txt` |
 |------|---------------|-------------|-----------------------------------|
