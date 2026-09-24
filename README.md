@@ -208,31 +208,31 @@ El proyecto sigue una arquitectura modular basada en **análisis por fases**, do
 ```plaintext
 .
 ├── docs/
-│   ├── casosDePrueba/
-│   │   ├── correctos/                 # Casos de prueba que compilan sin errores
-│   │   │   ├── prueba1/
-│   │   │   ├── prueba2/
-│   │   │   ├── ...
-│   │   │   └── prueba5/
+│   ├── gramaticas/
+│   │   ├── lexico/
+│   │   │   └── gramatica.txt          # Gramática regular del analizador léxico (AFD)
 │   │   │
-│   │   └── incorrectos/               # Casos de prueba que generan errores
-│   │       ├── prueba6/
-│   │       ├── prueba7/
-│   │       ├── ...
-│   │       └── prueba10/
+│   │   ├── semantico/
+│   │   │   └── gramatica.txt          # Gramática de traducción dirigida por la sintaxis
+│   │   │
+│   │   └── sintactico/
+│   │       ├── gramatica.txt          # Gramática LL(1) del analizador sintáctico
+│   │       ├── gramatica-analisisLL1(1).txt # Análisis LL(1) generado con SDGLL1
+│   │       └── tablaSintactica.html   # Tabla sintáctica LL(1) generada con SDGLL1
 │   │ 
-│   └── gramaticas/
-│       ├── lexico/
-│       │   └── gramatica.txt          # Gramática regular del analizador léxico (AFD)
+│   └── pruebas/
+│       ├── correctas/                 # Casos de prueba que compilan sin errores
+│       │   ├── prueba1/
+│       │   ├── prueba2/
+│       │   ├── ...
+│       │   └── prueba5/
 │       │
-│       ├── semantico/
-│       │   └── gramatica.txt          # Gramática de traducción dirigida por la sintaxis
-│       │
-│       └── sintactico/
-│           ├── gramatica.txt          # Gramática LL(1) del analizador sintáctico
-│           ├── gramaticaAnalisisLL1(1).txt # Análisis LL(1) generado con SDGLL1
-│           └── tablaSintactica.html   # Tabla sintáctica LL(1) generada con SDGLL1
-│
+│       └── incorrectas/               # Casos de prueba que generan errores
+│           ├── prueba6/
+│           ├── prueba7/
+│           ├── ...
+│           └── prueba10/
+│   
 ├── src/
 │   ├── errores/
 │   │   └── GestorErrores.java         # Gestión centralizada de errores
