@@ -1,0 +1,174 @@
+
+
+Análisis LL1 de gram.ll1
+
+Analizando símbolo A
+Analizando producción A -> let B id ;
+FIRST de A -> let B id ;  =  { let }
+Analizando producción A -> if ( C ) M
+FIRST de A -> if ( C ) M  =  { if }
+Analizando producción A -> while ( C ) { L }
+FIRST de A -> while ( C ) { L }  =  { while }
+Analizando producción A -> M
+Analizando símbolo M
+Analizando producción M -> id N
+FIRST de M -> id N  =  { id }
+Analizando producción M -> read id ;
+FIRST de M -> read id ;  =  { read }
+Analizando producción M -> write C ;
+FIRST de M -> write C ;  =  { write }
+Analizando producción M -> return R ;
+FIRST de M -> return R ;  =  { return }
+FIRST de M  =  { id read return write }
+FIRST de A -> M  =  { id read return write }
+FIRST de A  =  { id if let read return while write }
+Analizando símbolo B
+Analizando producción B -> int
+FIRST de B -> int  =  { int }
+Analizando producción B -> float
+FIRST de B -> float  =  { float }
+Analizando producción B -> boolean
+FIRST de B -> boolean  =  { boolean }
+Analizando producción B -> string
+FIRST de B -> string  =  { string }
+FIRST de B  =  { boolean float int string }
+Analizando símbolo C
+Analizando producción C -> D P
+Analizando símbolo D
+Analizando producción D -> F G
+Analizando símbolo F
+Analizando producción F -> H Z
+Analizando símbolo H
+Analizando producción H -> id J
+FIRST de H -> id J  =  { id }
+Analizando producción H -> ( C )
+FIRST de H -> ( C )  =  { ( }
+Analizando producción H -> entero
+FIRST de H -> entero  =  { entero }
+Analizando producción H -> real
+FIRST de H -> real  =  { real }
+Analizando producción H -> cadena
+FIRST de H -> cadena  =  { cadena }
+FIRST de H  =  { ( cadena entero id real }
+FIRST de F -> H Z  =  { ( cadena entero id real }
+FIRST de F  =  { ( cadena entero id real }
+FIRST de D -> F G  =  { ( cadena entero id real }
+FIRST de D  =  { ( cadena entero id real }
+FIRST de C -> D P  =  { ( cadena entero id real }
+FIRST de C  =  { ( cadena entero id real }
+Analizando símbolo G
+Analizando producción G -> == F G
+FIRST de G -> == F G  =  { == }
+Analizando producción G -> lambda
+FIRST de G -> lambda  =  { lambda }
+FIRST de G  =  { == lambda }
+Calculando FOLLOW de G
+Calculando FOLLOW de D
+Analizando símbolo P
+Analizando producción P -> || D P
+FIRST de P -> || D P  =  { || }
+Analizando producción P -> lambda
+FIRST de P -> lambda  =  { lambda }
+FIRST de P  =  { || lambda }
+Calculando FOLLOW de P
+Calculando FOLLOW de C
+Analizando símbolo Q
+Analizando producción Q -> , C Q
+FIRST de Q -> , C Q  =  { , }
+Analizando producción Q -> lambda
+FIRST de Q -> lambda  =  { lambda }
+FIRST de Q  =  { , lambda }
+Calculando FOLLOW de Q
+Calculando FOLLOW de K
+FOLLOW de K  =  { ) }
+FOLLOW de Q  =  { ) }
+Calculando FOLLOW de R
+FOLLOW de R  =  { ; }
+FOLLOW de C  =  { ) , ; }
+FOLLOW de P  =  { ) , ; }
+FOLLOW de D  =  { ) , ; || }
+FOLLOW de G  =  { ) , ; || }
+Analizando símbolo J
+Analizando producción J -> ( K )
+FIRST de J -> ( K )  =  { ( }
+Analizando producción J -> lambda
+FIRST de J -> lambda  =  { lambda }
+FIRST de J  =  { ( lambda }
+Calculando FOLLOW de J
+Calculando FOLLOW de H
+Analizando símbolo Z
+Analizando producción Z -> + H Z
+FIRST de Z -> + H Z  =  { + }
+Analizando producción Z -> lambda
+FIRST de Z -> lambda  =  { lambda }
+FIRST de Z  =  { + lambda }
+Calculando FOLLOW de Z
+Calculando FOLLOW de F
+FOLLOW de F  =  { ) , ; == || }
+FOLLOW de Z  =  { ) , ; == || }
+FOLLOW de H  =  { ) + , ; == || }
+FOLLOW de J  =  { ) + , ; == || }
+Analizando símbolo K
+Analizando producción K -> C Q
+FIRST de K -> C Q  =  { ( cadena entero id real }
+Analizando producción K -> lambda
+FIRST de K -> lambda  =  { lambda }
+FIRST de K  =  { ( cadena entero id real lambda }
+Analizando símbolo L
+Analizando producción L -> A L
+FIRST de L -> A L  =  { id if let read return while write }
+Analizando producción L -> lambda
+FIRST de L -> lambda  =  { lambda }
+FIRST de L  =  { id if let read return while write lambda }
+Calculando FOLLOW de L
+FOLLOW de L  =  { } }
+Analizando símbolo N
+Analizando producción N -> = C ;
+FIRST de N -> = C ;  =  { = }
+Analizando producción N -> |= C ;
+FIRST de N -> |= C ;  =  { |= }
+Analizando producción N -> ( K ) ;
+FIRST de N -> ( K ) ;  =  { ( }
+FIRST de N  =  { ( = |= }
+Analizando símbolo R
+Analizando producción R -> C
+FIRST de R -> C  =  { ( cadena entero id real }
+Analizando producción R -> lambda
+FIRST de R -> lambda  =  { lambda }
+FIRST de R  =  { ( cadena entero id real lambda }
+Analizando símbolo S
+Analizando producción S -> A S
+FIRST de S -> A S  =  { id if let read return while write }
+Analizando producción S -> T S
+Analizando símbolo T
+Analizando producción T -> function V id ( X ) { L }
+FIRST de T -> function V id ( X ) { L }  =  { function }
+FIRST de T  =  { function }
+FIRST de S -> T S  =  { function }
+Analizando producción S -> eof
+FIRST de S -> eof  =  { eof }
+FIRST de S  =  { eof function id if let read return while write }
+Analizando símbolo V
+Analizando producción V -> B
+FIRST de V -> B  =  { boolean float int string }
+Analizando producción V -> void
+FIRST de V -> void  =  { void }
+FIRST de V  =  { boolean float int string void }
+Analizando símbolo X
+Analizando producción X -> B id Y
+FIRST de X -> B id Y  =  { boolean float int string }
+Analizando producción X -> void
+FIRST de X -> void  =  { void }
+FIRST de X  =  { boolean float int string void }
+Analizando símbolo Y
+Analizando producción Y -> , B id Y
+FIRST de Y -> , B id Y  =  { , }
+Analizando producción Y -> lambda
+FIRST de Y -> lambda  =  { lambda }
+FIRST de Y  =  { , lambda }
+Calculando FOLLOW de Y
+Calculando FOLLOW de X
+FOLLOW de X  =  { ) }
+FOLLOW de Y  =  { ) }
+
+Análisis concluido satisfactoriamente
