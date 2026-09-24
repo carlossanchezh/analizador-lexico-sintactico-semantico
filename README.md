@@ -20,6 +20,18 @@ Si encuentra algún error generará los respectivos `.txt` de las fases completa
 
 - `files/errores.txt` — errores léxicos, sintácticos y semánticos detectados.
 
+## Gramáticas del Proyecto
+
+Todas las gramáticas están documentadas en `docs/gramaticas/`:
+
+| Fase | Archivo | Descripción |
+|------|---------|-------------|
+| **Léxica** | [`docs/gramaticas/lexico/gramatica.txt`](docs/gramaticas/lexico/gramatica.txt) | Gramática regular del AFD del analizador léxico |
+| **Sintáctica** | [`docs/gramaticas/sintactico/gramatica.txt`](docs/gramaticas/sintactico/gramatica.txt) | Gramática LL(1) del analizador sintáctico |
+| **Sintáctica (análisis)** | [`docs/gramaticas/sintactico/gramatica-analisisLL1(1).txt`](docs/gramaticas/sintactico/gramatica-analisisLL1(1).txt) | Análisis LL(1) generado con SDGLL1 |
+| **Sintáctica (tabla)** | [`docs/gramaticas/sintactico/tablaSintactica.html`](docs/gramaticas/sintactico/tablaSintactica.html) | Tabla sintáctica LL(1) generada con SDGLL1 |
+| **Semántica** | [`docs/gramaticas/semantico/gramatica.txt`](docs/gramaticas/semantico/gramatica.txt) | Gramática de traducción dirigida por la sintaxis |
+
 ## Tokens MyJS
 
 Definición completa de los tokens reconocidos por el analizador léxico:
@@ -140,7 +152,7 @@ El proyecto sigue una arquitectura modular basada en **análisis por fases**, do
 
 #### Analizador Léxico (`AnalizadorLexico`)
 
-- Recorre el código carácter a carácter.
+- Recorre el código carácter a carácter, siguiendo una [gramática AFD](docs/gramaticas/lexico/gramatica.txt).
 
 - Reconoce identificadores, palabras reservadas, constantes enteras/reales, cadenas, operadores y símbolos.
 
@@ -156,9 +168,11 @@ El proyecto sigue una arquitectura modular basada en **análisis por fases**, do
 
 #### Analizador Sintáctico (`AnalizadorSintactico`)
 
-- Implementa un parser descendente recursivo LL(1) basado en la gramática del lenguaje.
+- Implementa un parser descendente recursivo LL(1) basado en la [gramática del lenguaje](docs/gramaticas/sintactico/gramatica.txt).
 
-- Utiliza la tabla sintáctica generada con la herramienta SDGLL1.
+- La gramática es LL(1) comprobado a través de un [análisis](docs/gramaticas/sintactico/gramatica-analisisLL1(1).txt) realizado por la herramienta SDGLL1.
+
+- Utiliza la [tabla sintáctica](docs/gramaticas/sintactico/tablaSintactica.html)  generada con la herramienta SDGLL1.
 
 - Escribe en `parse.txt` la secuencia de reglas de producción aplicadas (Desc 1 4 8 ...).
 
@@ -166,7 +180,7 @@ El proyecto sigue una arquitectura modular basada en **análisis por fases**, do
 
 #### Analizador Semántico (`AnalizadorSemantico`)
 
-- Implementa la traducción dirigida por la sintaxis con atributos heredados y sintetizados.
+- Implementa una [gramática](docs/gramaticas/semantico/gramatica.txt) basada en la traducción dirigida por la sintaxis con atributos heredados y sintetizados.
 
 - Gestiona ámbitos mediante tablas de símbolos locales (TSL) y global (TSG).
 
@@ -186,7 +200,7 @@ El proyecto sigue una arquitectura modular basada en **análisis por fases**, do
 
 - TSL: tabla local creada al entrar en una función.
 
-- Cada entrada en la Tabla de Simbolos (EntradaTS) almacena: `id`, `lexema`, `tipo`, `desplazamiento`, `tabla`, y para funciones: `numParam`, `tiposParam`, `modosParam`, `tipoRetorno`, `etiqFuncion`.
+- Cada entrada en la Tabla de Símbolos (EntradaTS) almacena: `id`, `lexema`, `tipo`, `desplazamiento`, `tabla`, y para funciones: `numParam`, `tiposParam`, `modosParam`, `tipoRetorno`, `etiqFuncion`.
 
 - El gestor permite crear, destruir, consultar y volcar tablas a `tablaSimbolos.txt`.
 
@@ -198,10 +212,197 @@ El proyecto sigue una arquitectura modular basada en **análisis por fases**, do
 
 - Los errores semánticos se acumulan y se escriben al final en `files/errores.txt`.
 
+### Funcionamiento
+
+El compilador sigue un flujo de **análisis por fases** donde cada etapa consume la salida de la anterior. A continuación se describe el proceso completo desde que se selecciona un archivo hasta que se generan los resultados.
+
+#### Diagrama de Flujo 
+
+```plaintext
+                        ┌─────────────────────┐
+                        │  Selección archivo  │  JFileChooser → archivo.txt
+                        └──────────┬──────────┘
+                                   │
+                                   ▼
+                        ┌─────────────────────┐
+                        │  Limpieza de files/ │  Se eliminan tokens.txt, parse.txt,
+                        │                     │  tablaSimbolos.txt y errores.txt de compilaciones anteriores
+                        └──────────┬──────────┘
+                                   │
+                                   ▼
+                        ┌─────────────────────┐
+                        │  Lectura del código │  Files.readAllBytes() → String
+                        └──────────┬──────────┘
+                                   │
+                                   ▼
+              ┌────────────────────────────────────────────┐
+              │        Inicialización de componentes       │
+              │  ┌──────────────────┐  ┌─────────────────┐ │
+              │  │  GestorErrores   │  │  GestorTablas   │ │
+              │  │                  │  │  (crea TSG #0)  │ │
+              │  └────────┬─────────┘  └────────┬────────┘ │
+              └───────────┼─────────────────────┼──────────┘
+                          │                     │
+                     (compartidos por todas las fases)
+                          │                     │
+                          ▼                     ▼
+              ┌────────────────────────────────────────────┐
+              │            FASE 1: Análisis Léxico         │
+              │  AnalizadorLexico + TokensToFile           │
+              │  → files/tokens.txt                        │
+              │  → Inserta identificadores en TSG #0       │
+              └───────────────────┬────────────────────────┘
+                                  │  ¿Error léxico?
+                                  │  ├─ SÍ ─► GestorErrores.errorLexico()
+                                  │  │        → files/errores.txt
+                                  │  │        → System.exit(1)
+                                  │  └─ NO ─► continúa
+                                  ▼
+              ┌────────────────────────────────────────────┐
+              │         FASE 2: Análisis Sintáctico        │
+              │  AnalizadorSintactico                      │
+              │  → files/parse.txt                         │
+              └───────────────────┬────────────────────────┘
+                                  │  ¿Error sintáctico?
+                                  │  ├─ SÍ ─► GestorErrores.errorSintactico()
+                                  │  │        → files/errores.txt
+                                  │  │        → System.exit(1)
+                                  │  └─ NO ─► continúa
+                                  ▼
+              ┌────────────────────────────────────────────┐
+              │         FASE 3: Análisis Semántico         │
+              │  AnalizadorSemantico                       │
+              │  → Crea/imprime/destruye TSL GestorTablas  │ 
+              │  → files/tablaSimbolos.txt                 │
+              └───────────────────┬────────────────────────┘
+                                  │  ¿Error semántico?
+                                  │  └─ SÍ ─► GestorErrores.errorSemantico()
+                                  │           (acumula en lista)
+                                  ▼
+              ┌────────────────────────────────────────────┐
+              │           Volcado final de errores         │
+              │  GestorErrores.guardarErrores()            │
+              │  → files/errores.txt (si hay errores sem.) │
+              └────────────────────────────────────────────┘
+```
+
+#### Descripción Detallada del Flujo
+
+##### 1. Selección y Preparación
+
+El programa comienza en `Main.java`:
+
+1. **Creación del directorio `files/`** si no existe.
+
+2. **Selección del archivo de entrada** mediante `JFileChooser` (interfaz Swing).
+
+3. **Limpieza de salidas previas**: se eliminan `errores.txt`, `parse.txt`, `tablaSimbolos.txt` y `tokens.txt` para evitar mezclar resultados de ejecuciones anteriores.
+
+4. **Lectura del código fuente** completo en un `String`.
+
+##### 2. Inicialización de Componentes Compartidos
+
+Se crean dos componentes que serán usados por las tres fases:
+
+- **`GestorErrores`**: apunta a `files/errores.txt`, acumula errores semánticos y escribe errores léxicos/sintácticos inmediatamente.
+
+- **`GestorTablas`**: crea la tabla global `TSG #0` y gestiona las tablas locales que se creen al entrar en funciones.
+
+Ambos se pasan como parámetros a los analizadores, por lo que **todas las fases comparten el mismo estado**.
+
+##### 3. Fase 1 — Análisis Léxico
+
+Se instancia un `AnalizadorLexico` con el código, el `GestorTablas` y el `GestorErrores`.
+
+- `TokensToFile.tokenizar()` recorre el código llamando a `lexer.getToken()` en bucle hasta obtener `eof`.
+
+- Cada token se escribe en `files/tokens.txt` con formato `<tipo, lexema>`.
+
+- Los identificadores se insertan en la **TSG** (a través de `GestorTablas`) y el token guarda su `id` como lexema.
+
+- Si se detecta un error léxico, se llama a `gestorErrores.errorLexico()` que escribe el mensaje en `files/errores.txt` y se detiene la ejecución.
+
+##### 4. Fase 2 — Análisis Sintáctico
+
+Se instancia un `AnalizadorSintactico`, compartiendo los mismos `GestorTablas` y `GestorErrores`.
+
+- El parser comienza con `A_Sint()`, que lee el primer token y llama a `S()`.
+
+- Se implementa un **parser descendente recursivo LL(1)**: cada no terminal tiene su método (`A()`, `B()`, `C()`, ...).
+
+- La función `equipara(token)` consume el token actual si coincide con el esperado; en caso contrario, invoca `gestorErrores.errorSintactico()`.
+
+- Cada regla aplicada se escribe en `files/parse.txt` con el número de producción (`Desc 1 4 8 ...`).
+
+- Si hay error sintáctico, se llama a `gestorErrores.errorSintactico()` que escribe en `files/errores.txt` y detiene la ejecución.
+
+##### 5. Fase 3 — Análisis Semántico
+
+Se instancia  el `AnalizadorSemantico`, también con los mismos gestores compartidos `GestorTablas` y `GestorErrores`.
+
+- El método `A_Sm()` inicializa el token y llama a `S()`.
+  
+- Se implementa la **traducción dirigida por la sintaxis**: cada método devuelve un objeto `Nodo` con atributos (`tipo`, `ancho`, `numParam`, `tipoParametros`, `tipoRetorno`, etc.).
+
+- Se gestionan ámbitos **a través del `GestorTablas`**:
+  - Al entrar en una función, se crea una **TSL** con `gestorTablas.crearTSLocal()`.
+  - Al salir, se vuelca a `tablaSimbolos.txt` y se destruye con `destroyTSL()`.
+
+- Se realizan comprobaciones semánticas y, si hay errores, se acumulan en `erroresSemanticos` mediante `gestorErrores.errorSemantico()`.
+
+- Al finalizar `S()`, se vuelca la TSG a `tablaSimbolos.txt` y se llama a `gestorErrores.guardarErrores()` para escribir todos los errores semánticos acumulados.
+
+##### 6. Salidas Generadas
+
+| Archivo | Contenido | Cuándo se genera |
+|---------|-----------|------------------|
+| `files/tokens.txt` | Lista de tokens reconocidos | Tras la fase léxica |
+| `files/parse.txt` | Traza de producciones aplicadas | Durante la fase sintáctica |
+| `files/tablaSimbolos.txt` | Tablas TSG y TSL | Durante/después de la fase semántica |
+| `files/errores.txt` | Errores detectados | Inmediatamente (léx/sint) o al final (semánticos) |
+
 ### Tecnologías
 
 - Lenguaje: **Java**
 - Interfaz Gráfica: **Java Swing (JFileChooser)**
+
+## Casos de Prueba
+
+El proyecto incluye una batería de casos de prueba organizados en [`docs/pruebas/`](docs/pruebas), divididos en [**`correctas/`**](docs/pruebas/correctas) e [**`incorrectas/`**](docs/pruebas/incorrectas).
+
+### Casos Correctos
+
+| Caso | Objetivo | Características que demuestra |
+|------|----------|-------------------------------|
+| **Prueba 1** | Recursividad y paso de parámetros | Función recursiva `sumarRango`, retorno de valores `int`, llamadas anidadas |
+| **Prueba 2** | Bucle `while` con lógica booleana | Variables globales, variable local dentro del bucle, operadores `==`, `\|\|`, `write` con cadenas y variables |
+| **Prueba 3** | Control de flujo con booleanos | Variable `boolean` que controla un `while`, actualización de variables globales, condicional `if` anidado |
+| **Prueba 4** | Gestión de ámbitos y solapamiento | Variable local `x` que oculta a la global `x`, llamada anidada `operacion(operacion(x))` |
+| **Prueba 5** | Integración completa | Múltiples funciones (`suma`, `comparaciones`, `print`, `getN`, `setN`, `setNPorPantalla`, `contador`, `main`), tipos `void`, `read`, `write`, aritmética compleja, operadores lógicos y relacionales |
+
+### Casos Incorrectos 
+
+| Caso | Tipo de Error | Descripción | Mensaje esperado en `errores.txt` |
+|------|---------------|-------------|-----------------------------------|
+| **Prueba 6** | Semántico | Asignación de `string` a `int` (literal) | `Asignación incompatible se esperaba una asignacion de tipo [ int = int ] pero se encontro una asignacion de tipo [ int = string ]` |
+| **Prueba 7** | Semántico | Asignación de `string` a `int` (variable) | `Asignación incompatible se esperaba una asignacion de tipo [ int = int ] pero se encontro una asignacion de tipo [ int = string ]` |
+| **Prueba 8** | Semántico | Uso de función como variable sin paréntesis | `Uso indebido de funcion, 'calcular' es funcion y no puede usarse como variable` + errores en cadena |
+| **Prueba 9** | Léxico | Cadena sin cerrar / supera 64 caracteres | `Error Lexico: superados los caracteres maximos de una cadena (64)` |
+| **Prueba 10** | Sintáctico | `while` sin llaves `{ }` | `Error Sintáctico: Se esperaba: '{' Pero se encontro un identificador (contador)` |
+
+### Estructura de Cada Caso de Prueba
+
+Cada carpeta de prueba contiene:
+
+```
+pruebaN/
+├── entrada.txt              # Código MyJS de entrada
+├── tokens.txt               # Salida esperada de la fase léxica
+├── parse.txt                # Salida esperada de la fase sintáctica
+├── tablaSimbolos.txt        # Salida esperada de la fase semántica
+└── errores.txt              # Salida esperada (solo en casos incorrectos)
+```
+> Los casos incorrectos solo generan los archivos de las fases que se completaron antes del error.
 
 ## Estructura del Proyecto
 
