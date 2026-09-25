@@ -20,7 +20,7 @@ Si encuentra algún error generará los respectivos `.txt` de las fases completa
 
 - `files/errores.txt` — errores léxicos, sintácticos y semánticos detectados.
 
-## Gramáticas del Proyecto
+## Gramáticas del Analizador
 
 Todas las gramáticas están documentadas en `docs/gramaticas/`:
 
@@ -216,9 +216,7 @@ El proyecto sigue una arquitectura modular basada en **análisis por fases**, do
 
 El compilador sigue un flujo de **análisis por fases** donde cada etapa consume la salida de la anterior. A continuación se describe el proceso completo desde que se selecciona un archivo hasta que se generan los resultados.
 
-#### Descripción Detallada del Flujo
-
-##### 1. Selección y Preparación
+#### 1. Selección y Preparación
 
 El programa comienza en `Main.java`:
 
@@ -230,7 +228,7 @@ El programa comienza en `Main.java`:
 
 - **Lectura del código fuente** completo en un `String`.
 
-##### 2. Inicialización de Componentes Compartidos
+#### 2. Inicialización de Componentes Compartidos
 
 Se crean dos componentes que serán usados por las tres fases:
 
@@ -240,7 +238,7 @@ Se crean dos componentes que serán usados por las tres fases:
 
 Ambos se pasan como parámetros a los analizadores, por lo que **todas las fases comparten el mismo estado**.
 
-##### 3. Fase 1 — Análisis Léxico
+#### 3. Análisis Léxico
 
 Se instancia un `AnalizadorLexico` con el código, el `GestorTablas` y el `GestorErrores`.
 
@@ -252,7 +250,7 @@ Se instancia un `AnalizadorLexico` con el código, el `GestorTablas` y el `Gesto
 
 - Si se detecta un error léxico, se llama a `gestorErrores.errorLexico()` que escribe el mensaje en `files/errores.txt` y se detiene la ejecución.
 
-##### 4. Fase 2 — Análisis Sintáctico
+#### 4. Análisis Sintáctico
 
 Se instancia un `AnalizadorSintactico`, compartiendo los mismos `GestorTablas` y `GestorErrores`.
 
@@ -266,7 +264,7 @@ Se instancia un `AnalizadorSintactico`, compartiendo los mismos `GestorTablas` y
 
 - Si hay error sintáctico, se llama a `gestorErrores.errorSintactico()` que escribe en `files/errores.txt` y detiene la ejecución.
 
-##### 5. Fase 3 — Análisis Semántico
+#### 5. Análisis Semántico
 
 Se instancia  el `AnalizadorSemantico`, también con los mismos gestores compartidos `GestorTablas` y `GestorErrores`.
 
@@ -282,7 +280,7 @@ Se instancia  el `AnalizadorSemantico`, también con los mismos gestores compart
 
 - Al finalizar `S()`, se vuelca la TSG a `tablaSimbolos.txt` y se llama a `gestorErrores.guardarErrores()` para escribir todos los errores semánticos acumulados.
 
-##### 6. Salidas Generadas
+#### 6. Salidas Generadas
 
 | Archivo | Contenido | Cuándo se genera |
 |---------|-----------|------------------|
@@ -290,76 +288,6 @@ Se instancia  el `AnalizadorSemantico`, también con los mismos gestores compart
 | `files/parse.txt` | Traza de producciones aplicadas | Durante la fase sintáctica |
 | `files/tablaSimbolos.txt` | Tablas TSG y TSL | Durante/después de la fase semántica |
 | `files/errores.txt` | Errores detectados | Inmediatamente (léx/sint) o al final (semánticos) |
-
-#### Diagrama de Flujo 
-
-```plaintext
-                        ┌─────────────────────┐
-                        │  Selección archivo  │  JFileChooser → archivo.txt
-                        └──────────┬──────────┘
-                                   │
-                                   ▼
-                        ┌─────────────────────┐
-                        │  Limpieza de files/ │  Se eliminan tokens.txt, parse.txt,
-                        │                     │  tablaSimbolos.txt y errores.txt de compilaciones anteriores
-                        └──────────┬──────────┘
-                                   │
-                                   ▼
-                        ┌─────────────────────┐
-                        │  Lectura del código │  Files.readAllBytes() → String
-                        └──────────┬──────────┘
-                                   │
-                                   ▼
-              ┌────────────────────────────────────────────┐
-              │        Inicialización de componentes       │
-              │  ┌──────────────────┐  ┌─────────────────┐ │
-              │  │  GestorErrores   │  │  GestorTablas   │ │
-              │  │                  │  │  (crea TSG #0)  │ │
-              │  └────────┬─────────┘  └────────┬────────┘ │
-              └───────────┼─────────────────────┼──────────┘
-                          │                     │
-                     (compartidos por todas las fases)
-                          │                     │
-                          ▼                     ▼
-              ┌────────────────────────────────────────────┐
-              │            FASE 1: Análisis Léxico         │
-              │  AnalizadorLexico + TokensToFile           │
-              │  → files/tokens.txt                        │
-              │  → Inserta identificadores en TSG #0       │
-              └───────────────────┬────────────────────────┘
-                                  │  ¿Error léxico?
-                                  │  ├─ SÍ ─► GestorErrores.errorLexico()
-                                  │  │        → files/errores.txt
-                                  │  │        → System.exit(1)
-                                  │  └─ NO ─► continúa
-                                  ▼
-              ┌────────────────────────────────────────────┐
-              │         FASE 2: Análisis Sintáctico        │
-              │  AnalizadorSintactico                      │
-              │  → files/parse.txt                         │
-              └───────────────────┬────────────────────────┘
-                                  │  ¿Error sintáctico?
-                                  │  ├─ SÍ ─► GestorErrores.errorSintactico()
-                                  │  │        → files/errores.txt
-                                  │  │        → System.exit(1)
-                                  │  └─ NO ─► continúa
-                                  ▼
-              ┌────────────────────────────────────────────┐
-              │         FASE 3: Análisis Semántico         │
-              │  AnalizadorSemantico                       │
-              │  → Crea/imprime/destruye TSL GestorTablas  │ 
-              │  → files/tablaSimbolos.txt                 │
-              └───────────────────┬────────────────────────┘
-                                  │  ¿Error semántico?
-                                  │  └─ SÍ ─► GestorErrores.errorSemantico()
-                                  │           (acumula en lista)
-                                  ▼
-              ┌────────────────────────────────────────────┐
-              │           Volcado final de errores         │
-              │  GestorErrores.guardarErrores()            │
-              │  → files/errores.txt (si hay errores sem.) │
-              └────────────────────────────────────────────┘
-```
 
 ### Tecnologías
 
@@ -390,7 +318,7 @@ El proyecto incluye una batería de casos de prueba organizados en [`docs/prueba
 | **Prueba 9** | Léxico | Cadena sin cerrar / supera 64 caracteres | `Error Lexico: superados los caracteres maximos de una cadena (64)` |
 | **Prueba 10** | Sintáctico | `while` sin llaves `{ }` | `Error Sintáctico: Se esperaba: '{' Pero se encontro un identificador (contador)` |
 
-### Estructura de Cada Caso de Prueba
+### Estructura de Caso de Prueba
 
 Cada carpeta de prueba contiene:
 
@@ -457,5 +385,10 @@ pruebaN/
 │   │
 │   └── Main.java                      # Punto de entrada, selección de archivo y orquestación
 │
+├── INSTRUCTIONS.md                    # Instrucciones de instalación y ejecución del proyecto
 └── README.md                          # Descripción del proyecto 
 ```
+
+## Instalación y ejecución
+
+Ver [INSTRUCTIONS.md](INSTRUCTIONS.md)
